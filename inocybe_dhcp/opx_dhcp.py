@@ -30,6 +30,9 @@ from inocybe_dhcp.dhcpio import print_mac
 from inocybe_dhcp.rfc2131 import Message as DhcpMessage
 from inocybe_dhcp.options import BuiltIn as DhcpOptions
 from inocybe_dhcp.rfc3046 import RelayAgentInformation
+import cps
+import cps_object
+import cps_utils
 
 #### Constants ####
 BOOTREQUEST = 1
@@ -39,6 +42,8 @@ TIMEOUT = 300
 DO_NOT_RELAY = 0
 UDP_RELAY = 1
 MITM_RELAY = 3
+
+DHCPPATH = "dhcp-agent/if/interfaces/interface"
 
 
 # Initial assumption is that CPS will do a bound method as
@@ -51,6 +56,15 @@ MITM_RELAY = 3
 
 # it is the job of the config callback to digest the incoming
 # data and convert into a suitable format
+
+agent = None
+
+def get_cb(method, params):
+    '''CPS get callback'''
+    global agent
+    fobj = cps_object.CPSObject(obj=params['filter'])
+    params['list'].extend(agent.get(fobj.get()))
+    return True
 
 class Agent(object):
     '''DHCP Agent top level'''
@@ -71,6 +85,28 @@ class Agent(object):
             self._pending_config, self._active_config = None, self._pending_config
             self._process_config()
 
+    def get(self, filter):
+        '''Get config, filtering for a particular key'''
+        narrow_by = None
+        result = []
+        try:
+            narrow_by = cps_utils.cps_attr_types_map.from_data(
+                    'if/interfaces/interface/name',
+                    filter['data']['if/interfaces/interface/name']
+                    )
+        except KeyError:
+            pass
+        for iface in self._active_config:
+            if (narrow_by is None) or (iface["name"] == narrow_by):
+                try:
+                    obj =  cps_object.CPSObject(module='dhcp-agent/if/interfaces/interface',
+                            data = {"dhcp-server":iface["dhcp-server"]})
+                except KeyError:
+                    obj =  cps_object.CPSObject(module='dhcp-agent/if/interfaces/interface',
+                            data = {"trusted":iface["trusted"].encode('ascii')})
+                result.append(obj.get())
+        return result
+        
     # pylint: disable=unused-argument
     def mock_callback(self, signum, frame):
         '''Mock config read'''
@@ -102,8 +138,8 @@ class Agent(object):
                     self._epfd.register(io_handler.ifinfo(ifname).pcap.fileno(), EPOLLIN)
                 # pcap throws something unintelligible so we have to grab everything
                 # pylint: disable=broad-except
-                except Exception:
-                    logging.error("Could not configure interface %s", ifname)
+                except Exception as ex:
+                    logging.error("Could not configure interface %s - %s", ifname, ex)
         for ifname in old_keys:
             self._epfd.unregister(io_handler.ifinfo(ifname).pcap.fileno())
             logging.debug("Deleting interface %s", ifname)
@@ -217,6 +253,8 @@ class Agent(object):
 
 def main():
     '''Run the dhcp agent'''
+    global agent
+    cps_utils.add_attr_type('dhcp-agent/if/interfaces/interface/dhcp-server','ipv4')
     aparser = ArgumentParser(description=main.__doc__)
     aparser.add_argument(
         '--file',
@@ -228,6 +266,12 @@ def main():
     if args.get('verbose') is not None:
         logging.getLogger().setLevel(logging.DEBUG)
     agent = Agent(mock=args.get("file"))
+
+    dict_cb = {"get": get_cb}
+    handle = cps.obj_init()
+    cps.obj_register(handle, cps.key_from_name("target", DHCPPATH) , dict_cb)
+
+    
     agent.main_loop()
 
 if __name__ == '__main__':
