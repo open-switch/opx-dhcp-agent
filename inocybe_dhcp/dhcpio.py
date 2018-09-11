@@ -188,7 +188,7 @@ class DHCPIo(object):
 
     def del_if(self, iface):
         '''Remove an interface from the monitored set'''
-        del self.ifaces_by_fd[self.ifaces[iface].rawio]
+        del self.ifaces_by_fd[self.ifaces[iface].rawio.fileno()]
         del self.ifaces[iface]
         logging.debug("Interface %s deleted", iface)
 
