@@ -44,12 +44,12 @@ DO_NOT_RELAY = 0
 UDP_RELAY = 1
 MITM_RELAY = 3
 
-MODULE = "dhcp-AGENT/if/interfaces/interface"
+MODULE = "dhcp-agent/if/interfaces/interface"
 IFROOT = "if/interfaces/interface"
 IFNAME = "if/interfaces/interface/name"
-DHCPPATH = "dhcp-AGENT/if/interfaces/interface"
-DHCPSERVER = "dhcp-AGENT/if/interfaces/interface/dhcp-server"
-DHCPTRUSTED = "dhcp-AGENT/if/interfaces/interface/trusted"
+DHCPPATH = "dhcp-agent/if/interfaces/interface"
+DHCPSERVER = "dhcp-agent/if/interfaces/interface/dhcp-server"
+DHCPTRUSTED = "dhcp-agent/if/interfaces/interface/trusted"
 
 
 # Initial assumption is that CPS will do a bound method as
@@ -62,18 +62,6 @@ DHCPTRUSTED = "dhcp-AGENT/if/interfaces/interface/trusted"
 
 # it is the job of the config callback to digest the incoming
 # data and convert into a suitable format
-
-AGENT = None
-
-def get_cb(method, params):
-    '''CPS get callback'''
-    fobj = cps_object.CPSObject(obj=params['filter'])
-    params['list'].extend(AGENT.get(fobj.get()))
-    return True
-
-def trans_cb(method, params):
-    '''CPS transaction callback'''
-    return AGENT.transaction(params['change'])
 
 class Agent(object):
     '''DHCP Agent top level'''
@@ -340,22 +328,33 @@ class Agent(object):
 ### MAIN ###
 
 def main():
-    '''Run the dhcp AGENT'''
+    '''Run the dhcp agent'''
+
+    def get_cb(method, params):
+        '''CPS get callback'''
+        fobj = cps_object.CPSObject(obj=params['filter'])
+        params['list'].extend(agent.get(fobj.get()))
+        return True
+
+    def trans_cb(method, params):
+        '''CPS transaction callback'''
+        return agent.transaction(params['change'])
+
     # I actually mean to use it - not worth it building a singleton for
     # a single use
     # pylint: disable=global-statement
-    global AGENT
-    cps_utils.add_attr_type('dhcp-AGENT/if/interfaces/interface/dhcp-server', 'ipv4')
+    agent = None
+    cps_utils.add_attr_type('dhcp-agent/if/interfaces/interface/dhcp-server', 'ipv4')
     aparser = ArgumentParser(description=main.__doc__)
     aparser.add_argument(
         '--file',
-        help='the file containing the dhcp AGENT config if used in mock mode',
+        help='the file containing the dhcp agent config if used in mock mode',
         type=str)
     aparser.add_argument('--verbose', help='verbosity level', type=int)
     args = vars(aparser.parse_args())
     if args.get('verbose') is not None:
         logging.getLogger().setLevel(logging.DEBUG)
-    AGENT = Agent(mock=args.get("file"))
+    agent = Agent(mock=args.get("file"))
     dict_cb = {"get": get_cb, "transaction": trans_cb}
 
     # disable cps pylint warnings - they are spurious
@@ -364,7 +363,7 @@ def main():
     # pylint: disable=no-member
     cps.obj_register(handle, cps.key_from_name("target", DHCPPATH), dict_cb)
 
-    AGENT.main_loop()
+    agent.main_loop()
 
 if __name__ == '__main__':
     main()
