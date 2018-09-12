@@ -109,14 +109,14 @@ class Agent(object):
 
     def transaction(self, change):
         '''Transaction handler'''
-        op_map = {"set": self._set, "create": self._create, "delete": self._delete}
-        return op_map[change['operation']](change)
+        return getattr(self, '_' + change['operation'])(change)
 
     def _delete(self, change):
         '''Delete a config entry'''
         narrow_by = self._narrow_by(change)
+        # we delete dhcp agent attributes only on one interface at a time
         if narrow_by is None:
-            return False # we need an interface to be able to create
+            return False
         new_config = []
         result = False
 
@@ -129,20 +129,9 @@ class Agent(object):
             self._pending_config = new_config
         return result
 
-    def _create(self, change):
-        '''Create entry in config'''
-        narrow_by = self._narrow_by(change)
-        if narrow_by is None:
-            return False # we need an interface to be able to create
-
-        new_config = copy.deepcopy(self._active_config)
-        if new_config is None:
-            new_config = []
-
-        for iface in new_config:
-            if (narrow_by is None) or (iface["name"] == narrow_by):
-                return False
-        iface = {"name": narrow_by}
+    @staticmethod
+    def _add_change(iface, change):
+        '''Add the incoming attribute to the iface'''
         try:
             iface["dhcp-server"] = cps_utils.cps_attr_types_map.from_data(
                 DHCPSERVER,
@@ -153,10 +142,27 @@ class Agent(object):
                 DHCPTRUSTED,
                 change['data'][DHCPTRUSTED]
             )
+
+    def _create(self, change):
+        '''Create entry in config'''
+        narrow_by = self._narrow_by(change)
+        if narrow_by is None:
+            return False # we need an interface to be able to create
+
+        for iface in self._active_config:
+            if iface["name"] == narrow_by:
+                return False
+
+        new_config = copy.deepcopy(self._active_config)
+
+        if new_config is None:
+            new_config = []
+
+        iface = {"name": narrow_by}
+        self._add_change(iface, change)
         new_config.append(iface)
         self._pending_config = new_config
         return True
-
     def _set(self, change):
         '''Set entry in config for a particular key'''
 
@@ -169,16 +175,7 @@ class Agent(object):
             if (narrow_by is None) or (iface["name"] == narrow_by):
                 iface.pop("dhcp-server", None)
                 iface.pop("trusted", None)
-                try:
-                    iface["dhcp-server"] = cps_utils.cps_attr_types_map.from_data(
-                        DHCPSERVER,
-                        change['data'][DHCPSERVER]
-                    )
-                except KeyError:
-                    iface["trusted"] = cps_utils.cps_attr_types_map.from_data(
-                        DHCPTRUSTED,
-                        change['data'][DHCPTRUSTED]
-                    )
+                self._add_change(iface, change)
                 self._pending_config = new_config
                 return True
         return False
@@ -340,9 +337,6 @@ def main():
         '''CPS transaction callback'''
         return agent.transaction(params['change'])
 
-    # I actually mean to use it - not worth it building a singleton for
-    # a single use
-    # pylint: disable=global-statement
     agent = None
     cps_utils.add_attr_type('dhcp-agent/if/interfaces/interface/dhcp-server', 'ipv4')
     aparser = ArgumentParser(description=main.__doc__)
