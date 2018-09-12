@@ -44,12 +44,12 @@ DO_NOT_RELAY = 0
 UDP_RELAY = 1
 MITM_RELAY = 3
 
-MODULE = "dhcp-agent/if/interfaces/interface"
+MODULE = "dhcp-AGENT/if/interfaces/interface"
 IFROOT = "if/interfaces/interface"
 IFNAME = "if/interfaces/interface/name"
-DHCPPATH = "dhcp-agent/if/interfaces/interface"
-DHCPSERVER = "dhcp-agent/if/interfaces/interface/dhcp-server"
-DHCPTRUSTED = "dhcp-agent/if/interfaces/interface/trusted"
+DHCPPATH = "dhcp-AGENT/if/interfaces/interface"
+DHCPSERVER = "dhcp-AGENT/if/interfaces/interface/dhcp-server"
+DHCPTRUSTED = "dhcp-AGENT/if/interfaces/interface/trusted"
 
 
 # Initial assumption is that CPS will do a bound method as
@@ -63,20 +63,17 @@ DHCPTRUSTED = "dhcp-agent/if/interfaces/interface/trusted"
 # it is the job of the config callback to digest the incoming
 # data and convert into a suitable format
 
-agent = None
+AGENT = None
 
 def get_cb(method, params):
     '''CPS get callback'''
-    global agent
     fobj = cps_object.CPSObject(obj=params['filter'])
-    params['list'].extend(agent.get(fobj.get()))
+    params['list'].extend(AGENT.get(fobj.get()))
     return True
 
 def trans_cb(method, params):
     '''CPS transaction callback'''
-    global agent
-    tobj = cps_object.CPSObject(obj=params['change'])
-    return agent.transaction(params['change'])
+    return AGENT.transaction(params['change'])
 
 class Agent(object):
     '''DHCP Agent top level'''
@@ -97,75 +94,64 @@ class Agent(object):
             self._pending_config, self._active_config = None, self._pending_config
             self._process_config()
 
+    @staticmethod
+    def _narrow_by(sfilter):
+        '''Extract if/interface/interfaces/name from filter'''
+        try:
+            return cps_utils.cps_attr_types_map.from_data(
+                IFNAME,
+                sfilter['data'][IFNAME])
+        except KeyError:
+            return None
+
     def get(self, sfilter):
         '''Get config, filtering for a particular key'''
-        narrow_by = None
+        narrow_by = self._narrow_by(sfilter)
         result = []
-        try:
-            narrow_by = cps_utils.cps_attr_types_map.from_data(
-                    IFNAME,
-                    sfilter['data'][IFNAME]
-                    )
-        except KeyError:
-            pass
         for iface in self._active_config:
             if (narrow_by is None) or (iface["name"] == narrow_by):
                 try:
-                    obj =  cps_object.CPSObject(module=MODULE,
-                            data = {"dhcp-server":iface["dhcp-server"]})
+                    obj = cps_object.CPSObject(
+                        module=MODULE, data={"dhcp-server":iface["dhcp-server"]})
                 except KeyError:
-                    obj =  cps_object.CPSObject(module=MODULE,
-                            data = {"trusted":iface["trusted"].encode('ascii')})
+                    obj = cps_object.CPSObject(
+                        module=MODULE, data={"trusted":iface["trusted"].encode('ascii')})
                 result.append(obj.get())
         return result
 
     def transaction(self, change):
         '''Transaction handler'''
-        op_map = {"set": agent._set, "create": agent._create, "delete": agent._delete}
+        op_map = {"set": self._set, "create": self._create, "delete": self._delete}
         return op_map[change['operation']](change)
 
-        
     def _delete(self, change):
         '''Delete a config entry'''
-        narrow_by = None
-        result = []
-        try:
-            narrow_by = cps_utils.cps_attr_types_map.from_data(
-                    IFNAME,
-                    change['data'][IFNAME]
-                    )
-        except KeyError:
+        narrow_by = self._narrow_by(change)
+        if narrow_by is None:
             return False # we need an interface to be able to create
-
         new_config = []
         result = False
 
-        for iface in agent._active_config: 
+        for iface in self._active_config:
             if iface["name"] != narrow_by:
                 new_config.append(iface)
             else:
                 result = True
         if result:
-            agent._pending_config = new_config
+            self._pending_config = new_config
         return result
 
     def _create(self, change):
         '''Create entry in config'''
-        narrow_by = None
-        result = []
-        try:
-            narrow_by = cps_utils.cps_attr_types_map.from_data(
-                    IFNAME,
-                    change['data'][IFNAME]
-                    )
-        except KeyError:
+        narrow_by = self._narrow_by(change)
+        if narrow_by is None:
             return False # we need an interface to be able to create
 
         new_config = copy.deepcopy(self._active_config)
         if new_config is None:
             new_config = []
 
-        for iface in new_config: 
+        for iface in new_config:
             if (narrow_by is None) or (iface["name"] == narrow_by):
                 return False
         iface = {"name": narrow_by}
@@ -180,27 +166,18 @@ class Agent(object):
                 change['data'][DHCPTRUSTED]
             )
         new_config.append(iface)
-        agent._pending_config = new_config
+        self._pending_config = new_config
         return True
 
     def _set(self, change):
         '''Set entry in config for a particular key'''
 
-        narrow_by = None
-        result = []
-        try:
-            narrow_by = cps_utils.cps_attr_types_map.from_data(
-                    IFNAME,
-                    change['data'][IFNAME]
-                    )
-        except KeyError:
-            pass
-
+        narrow_by = self._narrow_by(change)
         new_config = copy.deepcopy(self._active_config)
         if new_config is None:
             new_config = []
 
-        for iface in new_config: 
+        for iface in new_config:
             if (narrow_by is None) or (iface["name"] == narrow_by):
                 iface.pop("dhcp-server", None)
                 iface.pop("trusted", None)
@@ -214,10 +191,10 @@ class Agent(object):
                         DHCPTRUSTED,
                         change['data'][DHCPTRUSTED]
                     )
-                agent._pending_config = new_config
+                self._pending_config = new_config
                 return True
         return False
-        
+
     # pylint: disable=unused-argument
     def mock_callback(self, signum, frame):
         '''Mock config read'''
@@ -363,26 +340,31 @@ class Agent(object):
 ### MAIN ###
 
 def main():
-    '''Run the dhcp agent'''
-    global agent
-    cps_utils.add_attr_type('dhcp-agent/if/interfaces/interface/dhcp-server','ipv4')
+    '''Run the dhcp AGENT'''
+    # I actually mean to use it - not worth it building a singleton for
+    # a single use
+    # pylint: disable=global-statement
+    global AGENT
+    cps_utils.add_attr_type('dhcp-AGENT/if/interfaces/interface/dhcp-server', 'ipv4')
     aparser = ArgumentParser(description=main.__doc__)
     aparser.add_argument(
         '--file',
-        help='the file containing the dhcp agent config if used in mock mode',
+        help='the file containing the dhcp AGENT config if used in mock mode',
         type=str)
     aparser.add_argument('--verbose', help='verbosity level', type=int)
     args = vars(aparser.parse_args())
     if args.get('verbose') is not None:
         logging.getLogger().setLevel(logging.DEBUG)
-    agent = Agent(mock=args.get("file"))
-
+    AGENT = Agent(mock=args.get("file"))
     dict_cb = {"get": get_cb, "transaction": trans_cb}
-    handle = cps.obj_init()
-    cps.obj_register(handle, cps.key_from_name("target", DHCPPATH) , dict_cb)
 
-    
-    agent.main_loop()
+    # disable cps pylint warnings - they are spurious
+    # pylint: disable=no-member
+    handle = cps.obj_init()
+    # pylint: disable=no-member
+    cps.obj_register(handle, cps.key_from_name("target", DHCPPATH), dict_cb)
+
+    AGENT.main_loop()
 
 if __name__ == '__main__':
     main()
