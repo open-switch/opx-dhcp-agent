@@ -36,8 +36,8 @@ MAXPACKET = 1500
 FILTER = "udp and (dst port 68) or (dst port 67)"
 ETH_BROADCAST = '\xff\xff\xff\xff\xff\xff'
 
-def print_mac(data):
-    '''Print out an IP addr as numeric'''
+def format_mac(data):
+    '''Print out a MAC addr in standard text form'''
     try:
         mac0, mac1, mac2, mac3, mac4, mac5 = struct.unpack("BBBBBB", data)
         return "{:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}".format(
@@ -45,8 +45,8 @@ def print_mac(data):
     except struct.error:
         return "{}".format(data)
 
-def print_ip(data):
-    '''Print out an IP addr as numeric'''
+def format_ip(data):
+    '''Print out an IP addr as a dotted quad'''
     try:
         ip0, ip1, ip2, ip3 = struct.unpack("BBBB", data)
         return "{}.{}.{}.{}".format(ip0, ip1, ip2, ip3)
@@ -147,11 +147,11 @@ class Ifinfo(object):
         )
         if to_server:
             logging.debug("Raw socket to server on %s using %s/%s",
-                          self.iface, print_ip(ipaddr), print_mac(mac))
+                          self.iface, format_ip(ipaddr), format_mac(mac))
             self.trust_sock.send(str(eth))
         else:
             logging.debug("Raw socket to client on %s using %s/%s",
-                          self.iface, print_ip(ipaddr), print_mac(mac))
+                          self.iface, format_ip(ipaddr), format_mac(mac))
             self.rawio.write(str(eth))
             self.rawio.flush() # needed, otherwise python buffering messes it up
 

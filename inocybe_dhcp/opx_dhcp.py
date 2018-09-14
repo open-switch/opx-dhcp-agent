@@ -26,8 +26,8 @@ import copy
 from argparse import ArgumentParser
 from inocybe_dhcp.dhcpio import DHCPIo
 from inocybe_dhcp.dhcpio import DHCPSERVER
-from inocybe_dhcp.dhcpio import print_ip
-from inocybe_dhcp.dhcpio import print_mac
+from inocybe_dhcp.dhcpio import format_ip
+from inocybe_dhcp.dhcpio import format_mac
 from inocybe_dhcp.rfc2131 import Message as DhcpMessage
 from inocybe_dhcp.options import BuiltIn as DhcpOptions
 from inocybe_dhcp.rfc3046 import RelayAgentInformation
@@ -292,8 +292,8 @@ class Agent(object):
             if parsed["op"] == BOOTREQUEST:
                 relay = MITM_RELAY
         logging.debug("Processing complete for %s from %s @ %s %s",
-                      parsed, print_ip(src_ip),
-                      print_mac(src_mac), relay)
+                      parsed, format_ip(src_ip),
+                      format_mac(src_mac), relay)
         return (parsed.pack(), ifinfo, src_ip, src_mac, relay)
 
 
