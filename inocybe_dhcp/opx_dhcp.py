@@ -44,12 +44,12 @@ DO_NOT_RELAY = 0
 UDP_RELAY = 1
 MITM_RELAY = 3
 
-MODULE = "dhcp-agent/if/interfaces/interface"
-IFROOT = "if/interfaces/interface"
-IFNAME = "if/interfaces/interface/name"
-DHCPPATH = "dhcp-agent/if/interfaces/interface"
-DHCPSERVER = "dhcp-agent/if/interfaces/interface/dhcp-server"
-DHCPTRUSTED = "dhcp-agent/if/interfaces/interface/trusted"
+MODULE_P = "dhcp-agent/if/interfaces/interface"
+IFROOT_P = "if/interfaces/interface"
+IFNAME_P = "if/interfaces/interface/name"
+DHCPPATH_P = "dhcp-agent/if/interfaces/interface"
+DHCPSERVER_P = "dhcp-agent/if/interfaces/interface/dhcp-server"
+DHCPTRUSTED_P = "dhcp-agent/if/interfaces/interface/trusted"
 
 
 # Initial assumption is that CPS will do a bound method as
@@ -87,8 +87,8 @@ class Agent(object):
         '''Extract if/interface/interfaces/name from filter'''
         try:
             return cps_utils.cps_attr_types_map.from_data(
-                IFNAME,
-                sfilter['data'][IFNAME])
+                IFNAME_P,
+                sfilter['data'][IFNAME_P])
         except KeyError:
             return None
 
@@ -100,10 +100,10 @@ class Agent(object):
             if (narrow_by is None) or (iface["name"] == narrow_by):
                 try:
                     obj = cps_object.CPSObject(
-                        module=MODULE, data={"dhcp-server":iface["dhcp-server"]})
+                        module=MODULE_P, data={"dhcp-server":iface["dhcp-server"]})
                 except KeyError:
                     obj = cps_object.CPSObject(
-                        module=MODULE, data={"trusted":iface["trusted"].encode('ascii')})
+                        module=MODULE_P, data={"trusted":iface["trusted"].encode('ascii')})
                 result.append(obj.get())
         return result
 
@@ -132,26 +132,29 @@ class Agent(object):
     @staticmethod
     def _add_change(iface, change):
         '''Add the incoming attribute to the iface'''
+        logging.debug("adding %s to %s ", "{}".format(change), "{}".format(iface))
         try:
             iface["dhcp-server"] = cps_utils.cps_attr_types_map.from_data(
-                DHCPSERVER,
-                change['data'][DHCPSERVER]
+                DHCPSERVER_P,
+                change['data'][DHCPSERVER_P]
             )
         except KeyError:
             iface["trusted"] = cps_utils.cps_attr_types_map.from_data(
-                DHCPTRUSTED,
-                change['data'][DHCPTRUSTED]
+                DHCPTRUSTED_P,
+                change['data'][DHCPTRUSTED_P]
             )
 
     def _create(self, change):
         '''Create entry in config'''
         narrow_by = self._narrow_by(change)
+        logging.debug("create for %s %s", "{}".format(narrow_by), "{}".format(change))
         if narrow_by is None:
             return False # we need an interface to be able to create
 
-        for iface in self._active_config:
-            if iface["name"] == narrow_by:
-                return False
+        if self._active_config is not None:
+            for iface in self._active_config:
+                if iface["name"] == narrow_by:
+                    return False
 
         new_config = copy.deepcopy(self._active_config)
 
@@ -162,7 +165,9 @@ class Agent(object):
         self._add_change(iface, change)
         new_config.append(iface)
         self._pending_config = new_config
+        logging.debug("pending config set to %s", "{}".format(self._pending_config))
         return True
+
     def _set(self, change):
         '''Set entry in config for a particular key'''
 
@@ -329,12 +334,14 @@ def main():
 
     def get_cb(method, params):
         '''CPS get callback'''
+        logging.debug("Get CB invoked with %s", "{}".format(params))
         fobj = cps_object.CPSObject(obj=params['filter'])
         params['list'].extend(agent.get(fobj.get()))
         return True
 
     def trans_cb(method, params):
         '''CPS transaction callback'''
+        logging.debug("Trans CB invoked with %s", "{}".format(params))
         return agent.transaction(params['change'])
 
     agent = None
@@ -355,7 +362,7 @@ def main():
     # pylint: disable=no-member
     handle = cps.obj_init()
     # pylint: disable=no-member
-    cps.obj_register(handle, cps.key_from_name("target", DHCPPATH), dict_cb)
+    cps.obj_register(handle, cps.key_from_name("target", DHCPPATH_P), dict_cb)
 
     agent.main_loop()
 

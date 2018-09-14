@@ -38,14 +38,21 @@ ETH_BROADCAST = '\xff\xff\xff\xff\xff\xff'
 
 def print_mac(data):
     '''Print out an IP addr as numeric'''
-    mac0, mac1, mac2, mac3, mac4, mac5 = struct.unpack("BBBBBB", data)
-    return "{:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}".format(
-        mac0, mac1, mac2, mac3, mac4, mac5)
+    try:
+        mac0, mac1, mac2, mac3, mac4, mac5 = struct.unpack("BBBBBB", data)
+        return "{:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}".format(
+            mac0, mac1, mac2, mac3, mac4, mac5)
+    except struct.error:
+        return "{}".format(data)
 
 def print_ip(data):
     '''Print out an IP addr as numeric'''
-    ip0, ip1, ip2, ip3 = struct.unpack("BBBB", data)
-    return "{}.{}.{}.{}".format(ip0, ip1, ip2, ip3)
+    try:
+        ip0, ip1, ip2, ip3 = struct.unpack("BBBB", data)
+        return "{}.{}.{}.{}".format(ip0, ip1, ip2, ip3)
+    except struct.error:
+        return "{}".format(data)
+
 
 
 class Ifinfo(object):
