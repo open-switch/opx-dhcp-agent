@@ -284,7 +284,7 @@ class Agent(object):
 
         # packet processing goes in here
         # insert giaddr option for relay mode
-        if ifinfo.dst is not None:
+        if ifinfo.dst is not None and ifinfo.ipaddr is not None:
             if parsed["op"] == BOOTREQUEST:
                 parsed['giaddr'] = ifinfo.ipaddr
                 relay = UDP_RELAY

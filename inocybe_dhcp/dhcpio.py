@@ -77,6 +77,8 @@ class Ifinfo(object):
         # pylint: disable=unused-variable
         except (IndexError, KeyError) as ignore:
             self.ipaddr = None
+        if self.ipaddr == None and trusted is None:
+            raise ValueError("Relay mode requires a v4 address on interface")
         # pylint: disable=no-member
         self.mac = ni.ifaddresses(iface)[ni.AF_PACKET][0]['addr']
         self.rawio = os.fdopen(self.pcap.fileno(), "w+")
