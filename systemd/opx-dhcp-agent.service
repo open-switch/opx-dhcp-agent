@@ -1,0 +1,18 @@
+[Unit]
+Description=Openswitch DHCP Agent
+After=opx-cps.service
+Wants=opx-cps.service
+DefaultDependencies=no
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/opx/opx-environment
+ExecStart=/usr/sbin/opx_dhcp_agent_svc
+KillSignal=SIGKILL
+SuccessExitStatus=SIGKILL
+
+# Resource Limitations
+LimitCORE=infinity
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,12 @@
+Source: opx-dhcp-agent
+Section: net
+Priority: optional
+Maintainer: Cambridge Greys <ops-dev@lists.openswitch.net>
+Build-Depends: debhelper (>= 9),dh-autoreconf,dh-systemd,autotools-dev
+Standards-Version: 3.9.3
+
+Package: opx-dhcp-agent
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, python-opx-cps (>= 2.0.0), python-opx-logging (>= 2.0.0), python-dumbnet, python-dpkt, python-libpcap, python-netifaces
+Description: DHCP Agent for all OPX platforms
+
