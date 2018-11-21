@@ -77,7 +77,7 @@ class Agent(object):
         self._active_config = None
         if mock is not None:
             logging.debug("Initializing mock using %s as mock config", mock)
-            signal.signal(signal.SIGUSR1, self.mock_callback)
+            signal.signal(signal.SIGHUP, self.mock_callback)
             self.mock_callback(None, None)
             self._pending_config, self._active_config = None, self._pending_config
             self._process_config()

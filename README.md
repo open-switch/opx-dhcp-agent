@@ -11,12 +11,13 @@ The DHCP agent supports two modes of operation.
 
 ## Caveats - Before you start
 
-ISC DHCP will *NOT* reply to relay requests if it cannot route to the relay agent ip address. This means that a subnet configured for relay mode must be reachable
-from the DHCP server. I would not be surprised if other servers show similar behaviour.
+ISC DHCP will always reply to the giaddr option set in the packet by the relay. While it knows the *actual* IP the request came from,
+this information will not be used.
 
-In theory, in order for them to work they will know everything about an incoming
-request such as the actual IP it came from, the MAC address in the packet, etc. It would be wonderful if they could just reply to that. The reality is that they
-*DO NOT*, so just leave any ideas about "out of band" DHCP here and then. It has to be in-band and everything needs to be reachable and for the relay agent case - routable.
+This results in a number of issues and limitations:
+
+- The IP in the giaddr option must be reachable and be one of the addresses of the dhcp relay.
+- ISC DHCP cannot support multiple subnets with the same addressing. If there is an address overlap on two different VLANs they have to be served by different ISC DHCP instances.
 
 ## Principles of operation
 
@@ -45,7 +46,7 @@ Invokes the agent. Unless mock test/mode is specified the agent will register wi
 
 `opx_dhcp.py [--verbose] [--file json_configuration.json] `
 
-The optional file argument provides a configuration in json format from a file. If the file is specified, it will be reloaded each time the agent receives SIGUSR1.
+The optional file argument provides a configuration in json format from a file. If the file is specified, it will be reloaded each time the agent receives SIGHUP.
 The agent will still register with CPS and respond to configuration requests via CPS even if the file is specified.
 
 The configuration file should be a valid json representation of a list with elements in the form {"name":"interface name", "dhcp-server":"X.X.X.X"} or 
@@ -64,9 +65,10 @@ Any interface with dhcp-server present is configured in relay mode. Any interfac
 
 ##### DHCP Agent application examples
 
-Setup the environment (should not be needed once it is packaged). From the top directory of the source run ``export PYTHONPATH=$PYTHONPATH:`pwd` ``
+The agent is a systemd service and will be started by the OpenSwitch runtime at boot time. 
 
-Run the agent `./inocybe_dhcp/opx_dhcp.py --verbose 1`
+It can also be run from the command line for debugging purposes - f.e. `./inocybe_dhcp/opx_dhcp.py --verbose 1`
+
 
 ```python
 import cps
