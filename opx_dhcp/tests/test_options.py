@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-'''Test cases for inocybe_dhcp.options.'''
+'''Test cases for opx_dhcp.options.'''
 
 from nose.tools import assert_equal
 from nose.tools import raises
 
-from inocybe_dhcp.options import (Option, Supported, BuiltIn)
-from inocybe_dhcp.types import IPv4
+from opx_dhcp.options import (Option, Supported, BuiltIn)
+from opx_dhcp.types import IPv4
 
 ### tests for :class:`Option`
 
@@ -213,7 +213,7 @@ class _MockTlv(_MockOption): ### pylint: disable=too-few-public-methods
 
 @raises(ValueError)
 def test_supported_duplicate_option():
-    '''Test inocybe_dhcp.options.Supported rejects duplicate option name'''
+    '''Test opx_dhcp.options.Supported rejects duplicate option name'''
     option = _MockOption('duplicate name', None)
     supported = Supported()
     supported.add(option)
@@ -221,18 +221,18 @@ def test_supported_duplicate_option():
 
 @raises(ValueError)
 def test_supported_duplicate_tag():
-    '''Test inocybe_dhcp.options.Supported rejects duplicate option tag'''
+    '''Test opx_dhcp.options.Supported rejects duplicate option tag'''
     supported = Supported()
     supported.add(_MockOption('first', 1))
     supported.add(_MockOption('second', 1))
 
 def test_supported_encode_empty():
-    '''Test inocybe_dhcp.options.Supported encodes empty options sequence'''
+    '''Test opx_dhcp.options.Supported encodes empty options sequence'''
     supported = Supported()
     assert_equal([], supported.encode([]))
 
 def test_supported_encode_tag():
-    '''Test inocybe_dhcp.options.Supported encodes tag options'''
+    '''Test opx_dhcp.options.Supported encodes tag options'''
     supported = Supported()
     supported.add(_MockTagOnly('two', 2))
     ### encode of registered option
@@ -241,7 +241,7 @@ def test_supported_encode_tag():
     assert_equal([{'tag': 255}], supported.encode([{'tag': 255}]))
 
 def test_supported_encode_tlv():
-    '''Test inocybe_dhcp.options.Supported encodes tlv options'''
+    '''Test opx_dhcp.options.Supported encodes tlv options'''
     supported = Supported()
     supported.add(_MockTlv('three', 3, 'foobar', b'\x05\x06\x07\x08'))
     ### encode of registered option with "good" value
@@ -264,12 +264,12 @@ def test_supported_encode_tlv():
     }]))
 
 def test_supported_decode_empty():
-    '''Test inocybe_dhcp.options.Supported decodes empty options sequence'''
+    '''Test opx_dhcp.options.Supported decodes empty options sequence'''
     supported = Supported()
     assert_equal([], supported.decode([]))
 
 def test_supported_decode_tag():
-    '''Test inocybe_dhcp.options.Supported decodes tag options'''
+    '''Test opx_dhcp.options.Supported decodes tag options'''
     supported = Supported()
     supported.add(_MockTagOnly('two', 2))
     ### decode of registered option tag
@@ -278,7 +278,7 @@ def test_supported_decode_tag():
     assert_equal([{'tag': 255}], supported.decode([{'tag': 255}]))
 
 def test_supported_decode_tlv():
-    '''Test inocybe_dhcp.options.Supported decodes tlv options'''
+    '''Test opx_dhcp.options.Supported decodes tlv options'''
     supported = Supported()
     supported.add(_MockTlv('three', 3, b'\x00\x01\x02\x03', 'foo'))
     ### decode of registered option tag with "good" value
@@ -303,11 +303,11 @@ def test_supported_decode_tlv():
 ### tests for :class:`BuiltIn`
 
 def test_builtin_encode():
-    '''Test inocybe_dhcp.options.BuiltIn encodes options'''
+    '''Test opx_dhcp.options.BuiltIn encodes options'''
     assert_equal([{'tag': 0}], BuiltIn.encode([{'option': 'Pad'}]))
     assert_equal([{'tag': 255}], BuiltIn.encode([{'option': 'End'}]))
 
 def test_builtin_decode():
-    '''Test inocybe_dhcp.options.BuiltIn decodes options'''
+    '''Test opx_dhcp.options.BuiltIn decodes options'''
     assert_equal([{'option': 'Pad'}], BuiltIn.decode([{'tag': 0}]))
     assert_equal([{'option': 'End'}], BuiltIn.decode([{'tag': 255}]))

@@ -21,8 +21,8 @@ import os
 import struct
 import logging
 import array
-from inocybe_dhcp.bridge import FDB
-from inocybe_dhcp.bridge import Filters
+from opx_dhcp.bridge import FDB
+from opx_dhcp.bridge import Filters
 import netifaces as ni
 import dumbnet
 import pcap

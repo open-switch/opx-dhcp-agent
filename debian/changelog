@@ -1,3 +1,9 @@
+opx-dhcp-agent (1.2.0) unstable; urgency=medium
+
+  * Rearrange directory structure for upstream inclusion
+
+ -- Anton Ivanov <anton.ivanov@cambridgegreys.com>  Wed, 21 Nov 2018 13:56:37 +0000
+
 opx-dhcp-agent (1.1.0) unstable; urgency=medium
 
   * Split into agent and libraries packages

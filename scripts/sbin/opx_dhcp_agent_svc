@@ -16,7 +16,7 @@
 # See the Apache Version 2.0 License for specific language governing
 # permissions and limitations under the License.
 
-#import inocybe_dhcp.cps_helpers
+#import opx_dhcp.cps_helpers
 import logging
 from select import epoll
 from select import EPOLLIN
@@ -24,13 +24,13 @@ import signal # used for mock
 import time
 import copy
 from argparse import ArgumentParser
-from inocybe_dhcp.dhcpio import DHCPIo
-from inocybe_dhcp.dhcpio import DHCPSERVER
-from inocybe_dhcp.dhcpio import format_ip
-from inocybe_dhcp.dhcpio import format_mac
-from inocybe_dhcp.rfc2131 import Message as DhcpMessage
-from inocybe_dhcp.options import BuiltIn as DhcpOptions
-from inocybe_dhcp.rfc3046 import RelayAgentInformation
+from opx_dhcp.dhcpio import DHCPIo
+from opx_dhcp.dhcpio import DHCPSERVER
+from opx_dhcp.dhcpio import format_ip
+from opx_dhcp.dhcpio import format_mac
+from opx_dhcp.rfc2131 import Message as DhcpMessage
+from opx_dhcp.options import BuiltIn as DhcpOptions
+from opx_dhcp.rfc3046 import RelayAgentInformation
 import cps
 import cps_object
 import cps_utils

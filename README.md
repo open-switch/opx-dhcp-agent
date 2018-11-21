@@ -67,7 +67,7 @@ Any interface with dhcp-server present is configured in relay mode. Any interfac
 
 The agent is a systemd service and will be started by the OpenSwitch runtime at boot time. 
 
-It can also be run from the command line for debugging purposes - f.e. `./inocybe_dhcp/opx_dhcp.py --verbose 1`
+It can also be run from the command line for debugging purposes - f.e. `./opx_dhcp/opx_dhcp.py --verbose 1`
 
 
 ```python

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-'''Test cases for inocybe_dhcp.rfc2132.'''
+'''Test cases for opx_dhcp.rfc2132.'''
 
-from inocybe_dhcp.rfc2132 import (
+from opx_dhcp.rfc2132 import (
     Cookie, Options,
     Pad, End,
     SubnetMask, TimeOffset, HostName,

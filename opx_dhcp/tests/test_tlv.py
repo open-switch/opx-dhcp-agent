@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-'''Test cases for inocybe_dhcp.tlv.'''
+'''Test cases for opx_dhcp.tlv.'''
 
 from nose.tools import assert_equal
 from nose.tools import raises
 
 from six import add_metaclass
 
-from inocybe_dhcp.tlv import (
+from opx_dhcp.tlv import (
     Int,
     UInt8, UInt16, UInt32,
     IPv4,
