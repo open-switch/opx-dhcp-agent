@@ -19,6 +19,7 @@ This results in a number of issues and limitations:
 - The IP in the giaddr option must be reachable and be one of the addresses of the dhcp relay.
 - ISC DHCP cannot support multiple subnets with the same addressing. If there is an address overlap on two different VLANs they have to be served by different ISC DHCP instances.
 
+
 ## Principles of operation
 
 The agent relies on the fact that OPX VLANs are "backed" by linux bridges and any learned MACs show up in the bridge forwarding database (FDB). For relay mode operation the
@@ -68,7 +69,6 @@ Any interface with dhcp-server present is configured in relay mode. Any interfac
 The agent is a systemd service and will be started by the OpenSwitch runtime at boot time. 
 
 It can also be run from the command line for debugging purposes - f.e. `./opx_dhcp/opx_dhcp.py --verbose 1`
-
 
 ```python
 import cps
