@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-'''Test cases for inocybe_dhcp.types.'''
+'''Test cases for opx_dhcp.types.'''
 
 from nose.tools import assert_equal
 from nose.tools import raises
 
 from six import add_metaclass
 
-from inocybe_dhcp.types import (
+from opx_dhcp.types import (
     ValueType,
     Int, Enum,
     UInt8, UInt16, UInt32, SInt32,
@@ -19,7 +19,7 @@ from inocybe_dhcp.types import (
 )
 
 def test_value_type():
-    '''Test inocybe_dhcp.types.ValueType default behaviours'''
+    '''Test opx_dhcp.types.ValueType default behaviours'''
     value_type = ValueType()
     assert_equal(None, value_type.sfmt)
     assert_equal('foo', value_type.encode('foo'))
@@ -27,17 +27,17 @@ def test_value_type():
 
 @raises(NotImplementedError)
 def test_value_type_call_abstract():
-    '''Test inocybe_dhcp.types.ValueType __call__() is abstract'''
+    '''Test opx_dhcp.types.ValueType __call__() is abstract'''
     ValueType()(None)
 
 @raises(NotImplementedError)
 def test_value_type_pack_abstract():
-    '''Test inocybe_dhcp.types.ValueType pack() is abstract'''
+    '''Test opx_dhcp.types.ValueType pack() is abstract'''
     ValueType().pack(None)
 
 @raises(NotImplementedError)
 def test_value_type_unpack_abstract():
-    '''Test inocybe_dhcp.types.ValueType unpack() is abstract'''
+    '''Test opx_dhcp.types.ValueType unpack() is abstract'''
     ValueType().unpack(None)
 
 class ValueTypeTest(object):
@@ -236,12 +236,12 @@ class TestUInt8(ValueTypeTest):
 
 @raises(ValueError)
 def test_uint8_min():
-    '''Test inocybe_dhcp.types.UInt8 cannot be restricted with negative min_ value'''
+    '''Test opx_dhcp.types.UInt8 cannot be restricted with negative min_ value'''
     UInt8(min_=-1)
 
 @raises(ValueError)
 def test_uint8_max():
-    '''Test inocybe_dhcp.types.UInt8 cannot be restricted with out of range max_ value'''
+    '''Test opx_dhcp.types.UInt8 cannot be restricted with out of range max_ value'''
     UInt8(max_=0x100)
 
 class TestUInt8Restricted(ValueTypeTest):
@@ -279,12 +279,12 @@ class TestUInt16(ValueTypeTest):
 
 @raises(ValueError)
 def test_uint16_min():
-    '''Test inocybe_dhcp.types.UInt16 cannot be restricted with negative min_ value'''
+    '''Test opx_dhcp.types.UInt16 cannot be restricted with negative min_ value'''
     UInt16(min_=-1)
 
 @raises(ValueError)
 def test_uint16_max():
-    '''Test inocybe_dhcp.types.UInt16 cannot be restricted with out of range max_ value'''
+    '''Test opx_dhcp.types.UInt16 cannot be restricted with out of range max_ value'''
     UInt16(max_=0x10000)
 
 class TestUInt16Restricted(ValueTypeTest):
@@ -322,12 +322,12 @@ class TestUInt32(ValueTypeTest):
 
 @raises(ValueError)
 def test_uint32_min():
-    '''Test inocybe_dhcp.types.UInt32 cannot be restricted with negative min_ value'''
+    '''Test opx_dhcp.types.UInt32 cannot be restricted with negative min_ value'''
     UInt32(min_=-1)
 
 @raises(ValueError)
 def test_uint32_max():
-    '''Test inocybe_dhcp.types.UInt32 cannot be restricted with out of range max_ value'''
+    '''Test opx_dhcp.types.UInt32 cannot be restricted with out of range max_ value'''
     UInt32(max_=0x100000000)
 
 class TestUInt32Restricted(ValueTypeTest):
@@ -371,12 +371,12 @@ class TestSInt32(ValueTypeTest):
 
 @raises(ValueError)
 def test_sint32_min():
-    '''Test inocybe_dhcp.types.SInt32 cannot be restricted with out of range min_ value'''
+    '''Test opx_dhcp.types.SInt32 cannot be restricted with out of range min_ value'''
     SInt32(min_=-0x80000001)
 
 @raises(ValueError)
 def test_sint32_max():
-    '''Test inocybe_dhcp.types.SInt32 cannot be restricted with out of range max_ value'''
+    '''Test opx_dhcp.types.SInt32 cannot be restricted with out of range max_ value'''
     SInt32(max_=0x80000000)
 
 class TestSInt32Restricted(ValueTypeTest):
@@ -589,7 +589,7 @@ class TestHexString(ValueTypeTest):
         b'\xFF\xFF\xFF\xFF\xFF\xFF\xFF',
     )
     def test_truncate(self):
-        '''Test inocybe_dhcp.types.HexString truncate method'''
+        '''Test opx_dhcp.types.HexString truncate method'''
         assert_equal(self.value_type.truncate('', 3), '')
         assert_equal(self.value_type.truncate('00', 3), '00')
         assert_equal(self.value_type.truncate('00:11:22', 3), '00:11:22')
@@ -609,7 +609,7 @@ class Simple(object):
     )
 
 def test_simple_success():
-    '''Test inocybe_dhcp.types.StructuredValue-based class as a dict'''
+    '''Test opx_dhcp.types.StructuredValue-based class as a dict'''
     ### create like a dict
     simple = Simple(foo=0x48, bar='quuz', baz='192.168.1.1')
     ### is a dict
@@ -641,42 +641,42 @@ def test_simple_success():
 
 @raises(KeyError)
 def test_simple_set_bad_key():
-    '''Test inocybe_dhcp.types.StructuredValue-based class set rejects bad key'''
+    '''Test opx_dhcp.types.StructuredValue-based class set rejects bad key'''
     simple = Simple()
     simple['quux'] = True
 
 @raises(TypeError)
 def test_simple_set_bad_type():
-    '''Test inocybe_dhcp.types.StructuredValue-based class set rejects bad value type'''
+    '''Test opx_dhcp.types.StructuredValue-based class set rejects bad value type'''
     simple = Simple()
     simple['foo'] = {'a': 'b'}
 
 @raises(ValueError)
 def test_simple_set_bad_value():
-    '''Test inocybe_dhcp.types.StructuredValue-based class set rejects bad value'''
+    '''Test opx_dhcp.types.StructuredValue-based class set rejects bad value'''
     simple = Simple()
     simple['foo'] = 'not an integer'
 
 @raises(KeyError)
 def test_simple_update_bad_key():
-    '''Test inocybe_dhcp.types.StructuredValue-based class update rejects bad key'''
+    '''Test opx_dhcp.types.StructuredValue-based class update rejects bad key'''
     simple = Simple()
     simple.update(quux=True)
 
 @raises(TypeError)
 def test_simple_update_bad_type():
-    '''Test inocybe_dhcp.types.StructuredValue-based class update rejects bad value type'''
+    '''Test opx_dhcp.types.StructuredValue-based class update rejects bad value type'''
     simple = Simple()
     simple.update((('foo', {'a': 'b'}),))
 
 @raises(ValueError)
 def test_simple_update_bad_value():
-    '''Test inocybe_dhcp.types.StructuredValue-based class update rejects bad value'''
+    '''Test opx_dhcp.types.StructuredValue-based class update rejects bad value'''
     simple = Simple()
     simple.update({'foo': 'not an integer'})
 
 def test_simple_pack():
-    '''Test inocybe_dhcp.types.StructuredValue-based class pack method'''
+    '''Test opx_dhcp.types.StructuredValue-based class pack method'''
     simple = Simple({'foo': 0xFEDCBA98, 'bar': 'quuz', 'baz': '192.168.1.1'})
     assert_equal(
         simple.pack(),
@@ -689,7 +689,7 @@ def test_simple_pack():
     )
 
 def test_simple_unpack():
-    '''Test inocybe_dhcp.types.StructuredValue-based class unpack method'''
+    '''Test opx_dhcp.types.StructuredValue-based class unpack method'''
     packed = (
         ### UInt32 in network-byte order
         b'\x00\x00\x00\x63' +
@@ -730,7 +730,7 @@ class Custom(Ethernet):
             self.clear_multicast_bit()
 
 def test_custom_success():
-    '''Test inocybe_dhcp.types.StructuredValue-based class supports customisation'''
+    '''Test opx_dhcp.types.StructuredValue-based class supports customisation'''
     custom = Custom((('len', 6), ('mac', '11:22:33:44:55:66'))) ### pylint: disable=too-many-function-args
     assert_equal({'len': 6, 'mac': '11:22:33:44:55:66'}, custom)
     ### supports custom __init__ and custom attributes

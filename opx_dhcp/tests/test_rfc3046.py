@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-'''Test cases for inocybe_dhcp.rfc3046.'''
+'''Test cases for opx_dhcp.rfc3046.'''
 
-from inocybe_dhcp.rfc3046 import RelayAgentInformation
+from opx_dhcp.rfc3046 import RelayAgentInformation
 
 from .test_options import OptionTest
 

@@ -27,8 +27,8 @@ from .options import BuiltIn as DhcpOptions
 
 ### pylint: disable=unused-import
 ### explicitly import DHCP option modules to register all built-in options
-import inocybe_dhcp.rfc2132
-import inocybe_dhcp.rfc3046
+import opx_dhcp.rfc2132
+import opx_dhcp.rfc3046
 
 def main():
     '''Parse a DHCP message from a binary file and print it as a JSON-encoded value.'''

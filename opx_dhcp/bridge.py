@@ -18,8 +18,8 @@
 
 import os
 import struct
-from inocybe_dhcp.cps_helpers import add_filter
-from inocybe_dhcp.cps_helpers import del_filter
+from opx_dhcp.cps_helpers import add_filter
+from opx_dhcp.cps_helpers import del_filter
 
 # FDB format
 # struct __fdb_entry {

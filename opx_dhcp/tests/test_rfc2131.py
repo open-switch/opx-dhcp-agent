@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 
-'''Test cases for inocybe_dhcp.rfc2131.'''
+'''Test cases for opx_dhcp.rfc2131.'''
 
 import os.path
 from nose.tools import assert_equal
 
-from inocybe_dhcp.rfc2131 import Message as DhcpMessage
-from inocybe_dhcp.options import BuiltIn as DhcpOptions
+from opx_dhcp.rfc2131 import Message as DhcpMessage
+from opx_dhcp.options import BuiltIn as DhcpOptions
 
-from inocybe_dhcp.rfc2132 import (
+from opx_dhcp.rfc2132 import (
     MessageType,
     RequestedIPAddress,
     HostName,
     ParameterRequestList,
 )
-from inocybe_dhcp.rfc3046 import (
+from opx_dhcp.rfc3046 import (
     RelayAgentInformation,
 )
 
@@ -64,7 +64,7 @@ with open(os.path.join(TESTDIR, 'client-request.bin'), 'rb') as FID:
     OCTETS = FID.read()
 
 def test_message():
-    '''Test inocybe_dhcp.rfc2131.Message class'''
+    '''Test opx_dhcp.rfc2131.Message class'''
     ### pylint: disable=no-member
     unpacked = DhcpMessage.unpack(OCTETS)
     assert_equal(EXPECTED, unpacked)
@@ -80,7 +80,7 @@ def test_message():
     assert_equal(EXPECTED, unpacked)
 
 def test_message_decode_options():
-    '''Test inocybe_dhcp.rfc2131.Message decode_options()'''
+    '''Test opx_dhcp.rfc2131.Message decode_options()'''
     ### pylint: disable=no-member
     ### test with options intact, decoding as TLV
     expected = dict(EXPECTED)
@@ -103,7 +103,7 @@ def test_message_decode_options():
     assert_equal(expected, DhcpMessage.unpack(OCTETS[:240]).decode_options())
 
 def test_message_encode_options():
-    '''Test inocybe_dhcp.rfc2131.Message encode_options()'''
+    '''Test opx_dhcp.rfc2131.Message encode_options()'''
     ### pylint: disable=no-member
     ### unpack with options stripped
     msg = DhcpMessage.unpack(OCTETS[:240])
@@ -142,14 +142,14 @@ def test_message_encode_options():
     assert_equal(expected, DhcpMessage.unpack(packed))
 
 def test_truncate_chaddr_benign():
-    '''Test inocybe_dhcp.rfc2131.Message truncate_chaddr() is benign'''
+    '''Test opx_dhcp.rfc2131.Message truncate_chaddr() is benign'''
     msg = DhcpMessage()
     assert_equal({}, msg)
     msg.truncate_chaddr()
     assert_equal({}, msg)
 
 def test_truncate_chaddr_success():
-    '''Test inocybe_dhcp.rfc2131.Message truncate_chaddr() truncates chaddr'''
+    '''Test opx_dhcp.rfc2131.Message truncate_chaddr() truncates chaddr'''
     ### pylint: disable=too-many-function-args,unsubscriptable-object
     msg = DhcpMessage({
         'hlen': 16,
